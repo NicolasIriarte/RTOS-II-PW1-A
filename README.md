@@ -4,17 +4,17 @@
 
 # Enunciado:
 Se solicita implementar una solución para el siguiente sistema.
-- El sistema cuenta con dos LEDs, LED verde y LED rojo, y un botón.
-- El sistema inicia con los LEDs apagados.
-- El sistema tendrá que detectar entre distintos modos de presionar el botón.
-- Se considera botón corto cuando el botón se presiona durante 100 y 2000 ms.
-- Se considera botón largo cuando el botón se presiona durante 2000 y 8000 ms.
-- Se considera botón trabado cuando el botón se mantiene presionado más de 8000
+- [X] El sistema cuenta con dos LEDs, LED verde y LED rojo, y un botón.
+- [ ] El sistema inicia con los LEDs apagados.
+- [ ] El sistema tendrá que detectar entre distintos modos de presionar el botón.
+- [ ] Se considera botón corto cuando el botón se presiona durante 100 y 2000 ms.
+- [ ] Se considera botón largo cuando el botón se presiona durante 2000 y 8000 ms.
+- [ ] Se considera botón trabado cuando el botón se mantiene presionado más de 8000
 ms.
-- Si se detecta un botón corto se debe invertir el estado (toogle) del LED verde.
-- Si se detecta un botón largo se debe invertir el estado (toogle) del LED rojo.
-- Si se detecta un botón trabado se deben encender los LEDs verde y rojo.
-- Si desaparece la condición de botón trabado se deben apagar los LEDs verde y
+- [ ] Si se detecta un botón corto se debe invertir el estado (toogle) del LED verde.
+- [ ] Si se detecta un botón largo se debe invertir el estado (toogle) del LED rojo.
+- [ ] Si se detecta un botón trabado se deben encender los LEDs verde y rojo.
+- [ ] Si desaparece la condición de botón trabado se deben apagar los LEDs verde y
 rojo.
 
 # Requerimientos
