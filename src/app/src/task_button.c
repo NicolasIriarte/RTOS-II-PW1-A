@@ -43,11 +43,15 @@
 #include <stdbool.h>
 
 #include "driver.h"
-#include "app.h"
 #include "task_button.h"
-#include "task_led.h"
+#include "app.h"
 
 /********************** macros and definitions *******************************/
+
+#define TASK_DELAY 5
+
+#define pdTICKS_TO_MS( xTicks ) \
+    ( ( ( TickType_t ) ( xTicks ) * 1000u ) / configTICK_RATE_HZ )
 
 /********************** internal data declaration ****************************/
 
@@ -59,59 +63,76 @@
 
 /********************** internal functions definition ************************/
 
-// Define the queue handle
-QueueHandle_t led_events_queue;
-
-void
-push_led_event (EventType_t event)
+static EventType_t
+TimeToEventType (ButtonTime_t time)
 {
-  // Send data to the queue
-  xQueueSend(led_events_queue, &event, portMAX_DELAY);
-}
 
-EventType_t
-pop_led_event (void)
-{
-  EventType_t event;
-  // Receive data from the queue
-  xQueueReceive (led_events_queue, &event, portMAX_DELAY);
-  return event;
-}
-
-/********************** external functions definition ************************/
-
-void
-app_init (void)
-{
-  // drivers
+  EventType_t event_type;
+  // Classify time
+  if (time < SHORT_TIME)
     {
-      eboard_init ();
+      event_type = NONE;
     }
-
-  // Queue
-
-  // Create a queue with a capacity of 10 events
-  led_events_queue = xQueueCreate(10, sizeof(EventType_t));
-
-  assert(led_events_queue != NULL);
-
-  // tasks
+  else if (time < LONG_TIME)
     {
-      BaseType_t status;
-      status = xTaskCreate (task_ButtonEvent, "task_ButtonEvent", 128, NULL,
-      tskIDLE_PRIORITY,
-			    NULL);
-      assert(status == pdPASS);
+      event_type = SHORT;
+    }
+  else if (time < STUCK_TIME)
+    {
+      event_type = LONG;
+    }
+  else
+    {
+      event_type = STUCK;
+    }
+  return event_type;
+}
 
-      status = xTaskCreate (task_LedEvent, "task_LedEvent", 128, NULL,
-      tskIDLE_PRIORITY,
-			    NULL);
-      assert(status == pdPASS);
+void
+task_ButtonEvent (void *pvParameters)
+{
+  ButtonTime_t last_time_event = 0;
+  ButtonTime_t delta_time = 0;
+  bool restart_timer_flag = true;
 
-      while (pdPASS != status)
+  while (1)
+    {
+      if (eboard_switch ()) // Button pressed
 	{
-	  // error
+
+	  if (restart_timer_flag)
+	    {
+	      last_time_event = pdTICKS_TO_MS(eboard_osal_port_get_time ());
+	      restart_timer_flag = false;
+	    }
+
+	  delta_time = pdTICKS_TO_MS(eboard_osal_port_get_time ())
+	      - last_time_event;
+
+	  if (delta_time > STUCK_TIME)
+	    {
+	      push_led_event (STUCK);
+	    }
+	  else
+	    {
+	      push_led_event (NONE);
+	    }
 	}
+      else // Button not pressed
+	{
+
+	  EventType_t event_type = TimeToEventType (delta_time);
+
+	  if (delta_time > STUCK_TIME)
+	    {
+	      event_type = NONE;
+	    }
+
+	  // Push event to the queue
+	  push_led_event (event_type);
+	  restart_timer_flag = true;
+	}
+      eboard_osal_port_delay (TASK_DELAY);
     }
 }
 
