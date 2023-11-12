@@ -35,8 +35,8 @@
  * @version	v1.0.0
  */
 
-#ifndef APP_INC_APP_H_
-#define APP_INC_APP_H_
+#ifndef APP_INC_TASK_LED_H_
+#define APP_INC_TASK_LED_H_
 
 /********************** CPP guard ********************************************/
 #ifdef __cplusplus
@@ -49,37 +49,24 @@ extern "C" {
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "app.h"
+
 /********************** macros ***********************************************/
 
-#define SHORT_TIME 100
-#define LONG_TIME  2000
-#define STUCK_TIME 8000
-
 /********************** typedef **********************************************/
-typedef enum
-{
-  NONE, SHORT, LONG, STUCK,
-} EventType_t;
 
-typedef uint32_t ButtonTime_t;
 /********************** external data declaration ****************************/
 
 /********************** external functions declaration ***********************/
 
 void
-app_init (void);
-
-void
-push_led_event (EventType_t event);
-
-EventType_t
-pop_led_event (void);
+task_LedEvent (void *arguments);
 
 /********************** End of CPP guard *************************************/
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* APP_INC_APP_H_ */
+#endif /* APP_INC_TASK_LED_H_ */
 /********************** end of file ******************************************/
 

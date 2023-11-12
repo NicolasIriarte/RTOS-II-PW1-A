@@ -29,19 +29,12 @@
  * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- * @file   : app.h
+ *
+ * @file   : app.c
  * @date   : Feb 17, 2023
  * @author : Sebastian Bedin <sebabedin@gmail.com>
  * @version	v1.0.0
  */
-
-#ifndef APP_INC_APP_H_
-#define APP_INC_APP_H_
-
-/********************** CPP guard ********************************************/
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /********************** inclusions *******************************************/
 
@@ -49,37 +42,55 @@ extern "C" {
 #include <stdint.h>
 #include <stdbool.h>
 
-/********************** macros ***********************************************/
+#include "driver.h"
+#include "task_led.h"
 
-#define SHORT_TIME 100
-#define LONG_TIME  2000
-#define STUCK_TIME 8000
+/********************** macros and definitions *******************************/
 
-/********************** typedef **********************************************/
-typedef enum
+/********************** internal data declaration ****************************/
+
+/********************** internal functions declaration ***********************/
+
+/********************** internal data definition *****************************/
+
+/********************** external data definition *****************************/
+
+/********************** internal functions definition ************************/
+
+void
+task_LedEvent (void *arguments)
 {
-  NONE, SHORT, LONG, STUCK,
-} EventType_t;
+  // The system shall init with all leds off.
+  eboard_led_red (false);
+  eboard_led_green (false);
+  eboard_led_blue (false);
 
-typedef uint32_t ButtonTime_t;
-/********************** external data declaration ****************************/
+  while (true)
+    {
+      EventType_t event = pop_led_event ();
 
-/********************** external functions declaration ***********************/
-
-void
-app_init (void);
-
-void
-push_led_event (EventType_t event);
-
-EventType_t
-pop_led_event (void);
-
-/********************** End of CPP guard *************************************/
-#ifdef __cplusplus
+      switch (event)
+	{
+	case NONE:
+	  eboard_led_green (false);
+	  eboard_led_red (false);
+	  break;
+	case SHORT:
+	  eboard_led_green (true);
+	  eboard_led_red (false);
+	  break;
+	case LONG:
+	  eboard_led_green (false);
+	  eboard_led_red (true);
+	  break;
+	case STUCK:
+	  eboard_led_green (true);
+	  eboard_led_red (true);
+	  break;
+	default:
+	  break;
+	}
+    }
 }
-#endif
 
-#endif /* APP_INC_APP_H_ */
 /********************** end of file ******************************************/
-
