@@ -67,9 +67,12 @@ task_LedEvent (void *arguments)
 
   while (true)
     {
-      EventType_t event = pop_led_event ();
+      EventType_t *event = pop_led_event ();
 
-      switch (event)
+      // Check if a valid pointer was returned.
+      assert(event != NULL);
+
+      switch (*event)
 	{
 	case NONE:
 	  eboard_led_green (false);
@@ -90,7 +93,10 @@ task_LedEvent (void *arguments)
 	default:
 	  break;
 	}
+      // After the event is processed, deallocate its memory.
+      vPortFree (event);
     }
+
 }
 
 /********************** end of file ******************************************/

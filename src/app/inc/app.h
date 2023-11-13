@@ -69,10 +69,10 @@ typedef uint32_t ButtonTime_t;
 void
 app_init (void);
 
-void
-push_led_event (EventType_t event);
+BaseType_t
+push_led_event (EventType_t *event);
 
-EventType_t
+EventType_t*
 pop_led_event (void);
 
 /********************** End of CPP guard *************************************/

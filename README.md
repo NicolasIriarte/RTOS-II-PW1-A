@@ -26,3 +26,5 @@ problemas de concurrencia.
 
 # Otros:
 Podrá encontrar el enunciado comple [aqui](assets/D05_TP1_ParteA_v0p2.pdf)
+
+Link al repositorio: [https://github.com/NicolasIriarte/RTOS-II-PW1-A](https://github.com/NicolasIriarte/RTOS-II-PW1-A)

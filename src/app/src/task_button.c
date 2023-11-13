@@ -95,8 +95,15 @@ task_ButtonEvent (void *pvParameters)
   ButtonTime_t delta_time = 0;
   bool restart_timer_flag = true;
 
-  while (1)
+  while (true)
     {
+      // INFO: As we always send events (For released and pressed) we always
+      // allocate memory here.
+      EventType_t *event = (EventType_t*) pvPortMalloc (sizeof(EventType_t));
+
+      // Check the memory is correctly allocated.
+      assert(event != NULL);
+
       if (eboard_switch ()) // Button pressed
 	{
 
@@ -111,16 +118,15 @@ task_ButtonEvent (void *pvParameters)
 
 	  if (delta_time > STUCK_TIME)
 	    {
-	      push_led_event (STUCK);
+	      *event = STUCK;
 	    }
 	  else
 	    {
-	      push_led_event (NONE);
+	      *event = NONE;
 	    }
 	}
       else // Button not pressed
 	{
-
 	  EventType_t event_type = TimeToEventType (delta_time);
 
 	  if (delta_time > STUCK_TIME)
@@ -129,9 +135,18 @@ task_ButtonEvent (void *pvParameters)
 	    }
 
 	  // Push event to the queue
-	  push_led_event (event_type);
+	  *event = event_type;
+
 	  restart_timer_flag = true;
 	}
+
+      BaseType_t ret = push_led_event (event);
+
+      if (ret != pdTRUE)
+	{
+	  vPortFree (event);
+	}
+
       eboard_osal_port_delay (TASK_DELAY);
     }
 }

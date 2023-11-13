@@ -62,17 +62,26 @@
 // Define the queue handle
 QueueHandle_t led_events_queue;
 
-void
-push_led_event (EventType_t event)
+/**
+ * This function push a pointer event into the queue.
+ * If the send fails, the caller is responsible to free the memory.
+ * If the event is succefully pushed, the receiver is in charge of
+ * freeing the memory.
+ */
+BaseType_t
+push_led_event (EventType_t *event)
 {
-  // Send data to the queue
-  xQueueSend(led_events_queue, &event, portMAX_DELAY);
+  return xQueueSend(led_events_queue, &event, portMAX_DELAY);
 }
 
-EventType_t
+/**
+ * Get a pointer to an event, the caller of this function must
+ * free the memory.
+ */
+EventType_t*
 pop_led_event (void)
 {
-  EventType_t event;
+  EventType_t *event;
   // Receive data from the queue
   xQueueReceive (led_events_queue, &event, portMAX_DELAY);
   return event;
@@ -91,7 +100,7 @@ app_init (void)
   // Queue
 
   // Create a queue with a capacity of 10 events
-  led_events_queue = xQueueCreate(10, sizeof(EventType_t));
+  led_events_queue = xQueueCreate(10, sizeof(EventType_t*));
 
   assert(led_events_queue != NULL);
 
