@@ -45,7 +45,11 @@
 #include "driver.h"
 #include "task_sys.h"
 
+// To create the led task dynamically
+#include "task_led.h"
+
 /********************** macros and definitions *******************************/
+#define LED_TASK_PRIORITY 2
 
 /********************** internal data declaration ****************************/
 
@@ -105,14 +109,23 @@ task_SysEvent (void *pvParameters)
 
   while (1)
     {
+
       ButtonEventType_t receive_event = pop_button_event ();
 
       LedEventType_t request =
 	{ };
 
+      TaskHandle_t xLedTaskHandle = NULL;
+
+      BaseType_t status = xTaskCreate (task_LedEvent, "task_LedEvent", 128,
+      NULL,
+				       LED_TASK_PRIORITY, &xLedTaskHandle);
+      assert(status == pdPASS);
+
       switch (receive_event)
 	{
 	case NONE:
+
 	  request.color = GREEN;
 	  request.led_state = OFF;
 	  push_led_event (request);
@@ -120,6 +133,7 @@ task_SysEvent (void *pvParameters)
 	  request.color = RED;
 	  request.led_state = OFF;
 	  push_led_event (request);
+
 	  break;
 
 	case SHORT:
@@ -155,6 +169,14 @@ task_SysEvent (void *pvParameters)
 	default:
 	  break;
 	}
+
+      // Wait until the queue is empty
+      while (uxQueueMessagesWaiting (led_events_queue) > 0)
+	{
+	  vTaskDelay (pdMS_TO_TICKS(1)); // Wait a millisecond
+	}
+
+      vTaskDelete (xLedTaskHandle);
     }
 }
 

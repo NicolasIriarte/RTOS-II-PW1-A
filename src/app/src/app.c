@@ -44,7 +44,6 @@
 
 #include "driver.h"
 #include "task_button.h"
-#include "task_led.h"
 #include "task_sys.h"
 
 /********************** macros and definitions *******************************/
@@ -73,11 +72,6 @@ app_init (void)
     {
       BaseType_t status;
       status = xTaskCreate (task_ButtonEvent, "task_ButtonEvent", 128, NULL,
-      tskIDLE_PRIORITY,
-			    NULL);
-      assert(status == pdPASS);
-
-      status = xTaskCreate (task_LedEvent, "task_LedEvent", 128, NULL,
       tskIDLE_PRIORITY,
 			    NULL);
       assert(status == pdPASS);
