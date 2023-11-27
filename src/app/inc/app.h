@@ -51,29 +51,14 @@ extern "C" {
 
 /********************** macros ***********************************************/
 
-#define SHORT_TIME 100
-#define LONG_TIME  2000
-#define STUCK_TIME 8000
-
 /********************** typedef **********************************************/
-typedef enum
-{
-  NONE, SHORT, LONG, STUCK,
-} EventType_t;
 
-typedef uint32_t ButtonTime_t;
 /********************** external data declaration ****************************/
 
 /********************** external functions declaration ***********************/
 
 void
 app_init (void);
-
-void
-push_led_event (EventType_t event);
-
-EventType_t
-pop_led_event (void);
 
 /********************** End of CPP guard *************************************/
 #ifdef __cplusplus

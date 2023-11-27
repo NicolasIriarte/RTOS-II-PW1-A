@@ -44,6 +44,7 @@
 
 #include "driver.h"
 #include "task_led.h"
+#include "task_sys.h"
 
 /********************** macros and definitions *******************************/
 
@@ -67,25 +68,15 @@ task_LedEvent (void *arguments)
 
   while (true)
     {
-      EventType_t event = pop_led_event ();
+      LedEventType_t event = pop_led_event ();
 
-      switch (event)
+      switch (event.color)
 	{
-	case NONE:
-	  eboard_led_green (false);
-	  eboard_led_red (false);
+	case RED:
+	  eboard_led_red (event.led_state);
 	  break;
-	case SHORT:
-	  eboard_led_green (true);
-	  eboard_led_red (false);
-	  break;
-	case LONG:
-	  eboard_led_green (false);
-	  eboard_led_red (true);
-	  break;
-	case STUCK:
-	  eboard_led_green (true);
-	  eboard_led_red (true);
+	case GREEN:
+	  eboard_led_green (event.led_state);
 	  break;
 	default:
 	  break;

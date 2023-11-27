@@ -29,68 +29,67 @@
  * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- *
- * @file   : app.c
+ * @file   : task_sys.h
  * @date   : Feb 17, 2023
  * @author : Sebastian Bedin <sebabedin@gmail.com>
  * @version	v1.0.0
  */
 
+#ifndef APP_INC_TASK_SYS_H_
+#define APP_INC_TASK_SYS_H_
+
+/********************** CPP guard ********************************************/
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /********************** inclusions *******************************************/
 
 #include <stdio.h>
-#include <stdint.h>
-#include <stdbool.h>
 
-#include "driver.h"
-#include "task_button.h"
-#include "task_led.h"
-#include "task_sys.h"
+/********************** macros ***********************************************/
 
-/********************** macros and definitions *******************************/
+/********************** typedef **********************************************/
 
-/********************** internal data declaration ****************************/
+typedef enum
+{
+  RED, GREEN,
+} LedsColor_t;
 
-/********************** internal functions declaration ***********************/
+typedef enum
+{
+  ON = 1, OFF = 0,
+} LedState_t;
 
-/********************** internal data definition *****************************/
+typedef struct
+{
+  LedsColor_t color;
+  LedState_t led_state;
+} LedEventType_t;
 
-/********************** external data definition *****************************/
+typedef enum
+{
+  NONE, SHORT, LONG, STUCK,
+} ButtonEventType_t;
 
-/********************** internal functions definition ************************/
+/********************** external data declaration ****************************/
 
-/********************** external functions definition ************************/
+/********************** external functions declaration ***********************/
 
 void
-app_init (void)
-{
-  // drivers
-    {
-      eboard_init ();
-    }
+task_SysEvent (void *pvParameters);
 
-  // tasks
-    {
-      BaseType_t status;
-      status = xTaskCreate (task_ButtonEvent, "task_ButtonEvent", 128, NULL,
-      tskIDLE_PRIORITY,
-			    NULL);
-      assert(status == pdPASS);
+void
+push_button_event (ButtonEventType_t event);
 
-      status = xTaskCreate (task_LedEvent, "task_LedEvent", 128, NULL,
-      tskIDLE_PRIORITY,
-			    NULL);
-      assert(status == pdPASS);
+LedEventType_t
+pop_led_event (void);
 
-      status = xTaskCreate (task_SysEvent, "task_SysEvent", 128, NULL, 1,
-      NULL);
-      assert(status == pdPASS);
-
-      while (pdPASS != status)
-	{
-	  // error
-	}
-    }
+/********************** End of CPP guard *************************************/
+#ifdef __cplusplus
 }
+#endif
 
+#endif /* APP_INC_TASK_SYS_H_ */
 /********************** end of file ******************************************/
+

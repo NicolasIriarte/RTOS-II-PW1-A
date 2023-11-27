@@ -43,8 +43,6 @@
 #include <stdbool.h>
 
 #include "driver.h"
-#include "task_button.h"
-#include "task_led.h"
 #include "task_sys.h"
 
 /********************** macros and definitions *******************************/
@@ -54,41 +52,108 @@
 /********************** internal functions declaration ***********************/
 
 /********************** internal data definition *****************************/
+// Define the queue handle
+QueueHandle_t button_events_queue;
+QueueHandle_t led_events_queue;
 
 /********************** external data definition *****************************/
 
 /********************** internal functions definition ************************/
 
-/********************** external functions definition ************************/
+void
+push_button_event (ButtonEventType_t event)
+{
+  // Send data to the queue
+  xQueueSend(button_events_queue, &event, portMAX_DELAY);
+}
+
+LedEventType_t
+pop_led_event (void)
+{
+  LedEventType_t event;
+  // Receive data from the queue
+  xQueueReceive (led_events_queue, &event, portMAX_DELAY);
+  return event;
+}
+
+/////////////////////////
+static ButtonEventType_t
+pop_button_event ()
+{
+  ButtonEventType_t event;
+  // Receive data from the queue
+  xQueueReceive (button_events_queue, &event, portMAX_DELAY);
+  return event;
+}
+
+static void
+push_led_event (LedEventType_t event)
+{
+  // Send data to the queue
+  xQueueSend(led_events_queue, &event, portMAX_DELAY);
+}
 
 void
-app_init (void)
+task_SysEvent (void *pvParameters)
 {
-  // drivers
+  // Create a queue with a capacity of 10 events
+  button_events_queue = xQueueCreate(10, sizeof(ButtonEventType_t));
+  assert(button_events_queue != NULL);
+
+  led_events_queue = xQueueCreate(10, sizeof(LedEventType_t));
+  assert(led_events_queue != NULL);
+
+  while (1)
     {
-      eboard_init ();
-    }
+      ButtonEventType_t receive_event = pop_button_event ();
 
-  // tasks
-    {
-      BaseType_t status;
-      status = xTaskCreate (task_ButtonEvent, "task_ButtonEvent", 128, NULL,
-      tskIDLE_PRIORITY,
-			    NULL);
-      assert(status == pdPASS);
+      LedEventType_t request =
+	{ };
 
-      status = xTaskCreate (task_LedEvent, "task_LedEvent", 128, NULL,
-      tskIDLE_PRIORITY,
-			    NULL);
-      assert(status == pdPASS);
-
-      status = xTaskCreate (task_SysEvent, "task_SysEvent", 128, NULL, 1,
-      NULL);
-      assert(status == pdPASS);
-
-      while (pdPASS != status)
+      switch (receive_event)
 	{
-	  // error
+	case NONE:
+	  request.color = GREEN;
+	  request.led_state = OFF;
+	  push_led_event (request);
+
+	  request.color = RED;
+	  request.led_state = OFF;
+	  push_led_event (request);
+	  break;
+
+	case SHORT:
+	  request.color = GREEN;
+	  request.led_state = ON;
+	  push_led_event (request);
+
+	  request.color = RED;
+	  request.led_state = OFF;
+	  push_led_event (request);
+	  break;
+
+	case LONG:
+	  request.color = GREEN;
+	  request.led_state = OFF;
+	  push_led_event (request);
+
+	  request.color = RED;
+	  request.led_state = ON;
+	  push_led_event (request);
+	  break;
+
+	case STUCK:
+	  request.color = GREEN;
+	  request.led_state = ON;
+	  push_led_event (request);
+
+	  request.color = RED;
+	  request.led_state = ON;
+	  push_led_event (request);
+	  break;
+
+	default:
+	  break;
 	}
     }
 }

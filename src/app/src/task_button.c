@@ -44,9 +44,13 @@
 
 #include "driver.h"
 #include "task_button.h"
-#include "app.h"
+#include "task_sys.h"
 
 /********************** macros and definitions *******************************/
+
+#define SHORT_TIME 100
+#define LONG_TIME  2000
+#define STUCK_TIME 8000
 
 #define TASK_DELAY 5
 
@@ -54,6 +58,7 @@
     ( ( ( TickType_t ) ( xTicks ) * 1000u ) / configTICK_RATE_HZ )
 
 /********************** internal data declaration ****************************/
+typedef uint32_t ButtonTime_t;
 
 /********************** internal functions declaration ***********************/
 
@@ -63,11 +68,11 @@
 
 /********************** internal functions definition ************************/
 
-static EventType_t
+static ButtonEventType_t
 TimeToEventType (ButtonTime_t time)
 {
 
-  EventType_t event_type;
+  ButtonEventType_t event_type;
   // Classify time
   if (time < SHORT_TIME)
     {
@@ -111,17 +116,17 @@ task_ButtonEvent (void *pvParameters)
 
 	  if (delta_time > STUCK_TIME)
 	    {
-	      push_led_event (STUCK);
+	      push_button_event (STUCK);
 	    }
 	  else
 	    {
-	      push_led_event (NONE);
+	      push_button_event (NONE);
 	    }
 	}
       else // Button not pressed
 	{
 
-	  EventType_t event_type = TimeToEventType (delta_time);
+	  ButtonEventType_t event_type = TimeToEventType (delta_time);
 
 	  if (delta_time > STUCK_TIME)
 	    {
@@ -129,7 +134,7 @@ task_ButtonEvent (void *pvParameters)
 	    }
 
 	  // Push event to the queue
-	  push_led_event (event_type);
+	  push_button_event (event_type);
 	  restart_timer_flag = true;
 	}
       eboard_osal_port_delay (TASK_DELAY);
