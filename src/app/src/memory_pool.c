@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Sebastian Bedin <sebabedin@gmail.com>.
+ * Copyright (c) YEAR NOMBRE <MAIL>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,9 +30,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  *
- * @file   : app.c
- * @date   : Feb 17, 2023
- * @author : Sebastian Bedin <sebabedin@gmail.com>
+ * @file   : memory_pool.c
+ * @date   : Mar 16, 2023
+ * @author : NOMBRE <MAIL>
  * @version	v1.0.0
  */
 
@@ -42,24 +42,13 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "memory_pool.h"
 #include "driver.h"
-#include "task_button.h"
-#include "led_event_queue.h"
 
 /********************** macros and definitions *******************************/
 
-#define TASK_DELAY 5
-
-#define pdTICKS_TO_MS( xTicks ) \
-    ( ( ( TickType_t ) ( xTicks ) * 1000u ) / configTICK_RATE_HZ )
-
-#define SHORT_TIME 100
-#define LONG_TIME  2000
-#define STUCK_TIME 8000
-
 /********************** internal data declaration ****************************/
 
-typedef uint32_t ButtonTime_t;
 /********************** internal functions declaration ***********************/
 
 /********************** internal data definition *****************************/
@@ -68,69 +57,40 @@ typedef uint32_t ButtonTime_t;
 
 /********************** internal functions definition ************************/
 
-static EventType_t TimeToEventType(ButtonTime_t time) {
+/********************** external functions definition ************************/
 
-	EventType_t event_type;
-	// Classify time
-	if (time < SHORT_TIME) {
-		event_type = NONE;
-	} else if (time < LONG_TIME) {
-		event_type = SHORT;
-	} else if (time < STUCK_TIME) {
-		event_type = LONG;
-	} else {
-		event_type = STUCK;
-	}
-	return event_type;
+void memory_pool_init(memory_pool_t* hmp, void* pmemory, size_t nblocks, size_t block_size)
+{
+  linked_list_t* hlist = &(hmp->block_list);
+  linked_list_init(hlist);
+
+  for(size_t i = 0; i < nblocks; ++i)
+  {
+    void* pblock = pmemory + i*block_size;
+    linked_list_node_init((memory_pool_block_t*)pblock, NULL);
+    linked_list_node_add(hlist, pblock);
+  }
 }
 
-void task_ButtonEvent(void *pvParameters) {
-	ButtonTime_t last_time_event = 0;
-	ButtonTime_t delta_time = 0;
-	bool restart_timer_flag = true;
+void* memory_pool_block_get(memory_pool_t* hmp)
+{
+  portENTER_CRITICAL(); //Enter on critical section
+  linked_list_t* hlist = &(hmp->block_list);
+  void* pblock = (void*)linked_list_node_remove(hlist);
+  portEXIT_CRITICAL(); //Exit from critical section
+  return pblock;
+}
 
-	EventType_t last_event = NONE;
-
-	while (true) {
-		EventType_t event;
-
-		if (eboard_switch()) // Button pressed
-		{
-
-			if (restart_timer_flag) {
-				last_time_event = pdTICKS_TO_MS(eboard_osal_port_get_time());
-				restart_timer_flag = false;
-			}
-
-			delta_time = pdTICKS_TO_MS(eboard_osal_port_get_time())
-					- last_time_event;
-
-			if (delta_time > STUCK_TIME) {
-				event = STUCK;
-			} else {
-				event = NONE;
-			}
-		} else // Button not pressed
-		{
-			EventType_t event_type = TimeToEventType(delta_time);
-
-			if (delta_time > STUCK_TIME) {
-				event_type = NONE;
-			}
-
-			// Push event to the queue
-			event = event_type;
-
-			restart_timer_flag = true;
-		}
-
-		if (event != last_event) {
-			push_led_event(event);
-			last_event = event;
-		}
-
-		eboard_osal_port_delay(TASK_DELAY);
-	}
+void memory_pool_block_put(memory_pool_t* hmp, void* pblock)
+{
+  portENTER_CRITICAL(); //Enter on critical section
+  if(NULL != pblock)
+  {
+    linked_list_t* hlist = &(hmp->block_list);
+    linked_list_node_init((memory_pool_block_t*)pblock, NULL);
+    linked_list_node_add(hlist, pblock);
+  }
+  portEXIT_CRITICAL(); //Exit from critical section
 }
 
 /********************** end of file ******************************************/

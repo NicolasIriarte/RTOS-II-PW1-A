@@ -72,47 +72,45 @@ static StackType_t xTaskLedStack[TASK_STACK_SIZE];
 
 /********************** external functions definition ************************/
 
-void
-app_init (void)
-{
-  // drivers
-    {
-      eboard_init ();
-    }
+void app_init(void) {
+	// drivers
+	{
+		eboard_init();
+	}
 
-  // Queue
-  bool initialize_queue = event_queue_init();
+	// Initialize the event list
+	led_event_init();
 
-  assert(initialize_queue != false);
-
-  // tasks
-    {
-	  TaskHandle_t status;
-      status = xTaskCreateStatic (task_ButtonEvent, "task_ButtonEvent",
-    	        TASK_STACK_SIZE,       // Stack size
-    	        NULL,                  // Task parameters
-    	        tskIDLE_PRIORITY + 1,  // Task priority
-    	        xTaskButtonStack,      // Task stack
-    	        &xTaskButtonBuffer      // Task control block
+	// tasks
+	{
+		TaskHandle_t status = NULL;
+		status = xTaskCreateStatic(task_ButtonEvent, "task_ButtonEvent",
+		TASK_STACK_SIZE,               // Stack size
+				NULL,                  // Task parameters
+				tskIDLE_PRIORITY + 1,  // Task priority
+				xTaskButtonStack,      // Task stack
+				&xTaskButtonBuffer      // Task control block
 				);
 
-      assert(status != NULL);
+		assert(status != NULL);
 
-      status = xTaskCreateStatic(task_LedEvent, "task_LedEvent",
-  	        TASK_STACK_SIZE,       // Stack size
-  	        NULL,                  // Task parameters
-  	        tskIDLE_PRIORITY + 1,  // Task priority
-  	        xTaskLedStack,      // Task stack
-  	        &xTaskLedBuffer      // Task control block
-			);
+		status = xTaskCreateStatic(task_LedEvent, "task_LedEvent",
+		TASK_STACK_SIZE,               // Stack size
+				NULL,                  // Task parameters
+				tskIDLE_PRIORITY,      // Task priority
+				xTaskLedStack,         // Task stack
+				&xTaskLedBuffer         // Task control block
+				);
 
-      assert(status != NULL);
+		assert(status != NULL);
 
-      while (status != NULL)
-	{
-	  // error
+		// Start the scheduler
+		vTaskStartScheduler();
+
+		while (status != NULL) {
+			// error
+		}
 	}
-    }
 }
 
 /********************** end of file ******************************************/

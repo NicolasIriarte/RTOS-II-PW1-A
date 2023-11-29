@@ -58,45 +58,42 @@
 
 /********************** internal functions definition ************************/
 
-void
-task_LedEvent (void *arguments)
-{
-  // The system shall init with all leds off.
-  eboard_led_red (false);
-  eboard_led_green (false);
-  eboard_led_blue (false);
+void task_LedEvent(void *arguments) {
+	// The system shall init with all leds off.
+	eboard_led_red(false);
+	eboard_led_green(false);
+	eboard_led_blue(false);
 
-  while (true)
-    {
-      EventType_t *event = pop_led_event ();
+	EventType_t last_event = NONE;
 
-      // Check if a valid pointer was returned.
-      assert(event != NULL);
+	while (true) {
+		EventType_t *event = pop_led_event();
 
-      switch (*event)
-	{
-	case NONE:
-	  eboard_led_green (false);
-	  eboard_led_red (false);
-	  break;
-	case SHORT:
-	  eboard_led_green (true);
-	  eboard_led_red (false);
-	  break;
-	case LONG:
-	  eboard_led_green (false);
-	  eboard_led_red (true);
-	  break;
-	case STUCK:
-	  eboard_led_green (true);
-	  eboard_led_red (true);
-	  break;
-	default:
-	  break;
+		if (event == NULL) {
+			continue;
+		}
+
+		switch (*event) {
+		case NONE:
+			eboard_led_green(false);
+			eboard_led_red(false);
+			break;
+		case SHORT:
+			eboard_led_green(true);
+			eboard_led_red(false);
+			break;
+		case LONG:
+			eboard_led_green(false);
+			eboard_led_red(true);
+			break;
+		case STUCK:
+			eboard_led_green(true);
+			eboard_led_red(true);
+			break;
+		default:
+			break;
+		}
 	}
-      // After the event is processed, deallocate its memory.
-      vPortFree (event);
-    }
 
 }
 

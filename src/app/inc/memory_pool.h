@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Sebastian Bedin <sebabedin@gmail.com>.
+ * Copyright (c) YEAR NOMBRE <MAIL>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,14 +29,14 @@
  * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- * @file   : app.h
- * @date   : Feb 17, 2023
- * @author : Sebastian Bedin <sebabedin@gmail.com>
+ * @file   : memory_pool.h
+ * @date   : Mar 16, 2023
+ * @author : NOMBRE <MAIL>
  * @version	v1.0.0
  */
 
-#ifndef APP_INC_LED_EVENT_QUEUE_H_
-#define APP_INC_LED_EVENT_QUEUE_H_
+#ifndef APP_INC_MEMORY_POOL_H_
+#define APP_INC_MEMORY_POOL_H_
 
 /********************** CPP guard ********************************************/
 #ifdef __cplusplus
@@ -49,30 +49,36 @@ extern "C" {
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "linked_list.h"
+
 /********************** macros ***********************************************/
 
 /********************** typedef **********************************************/
-typedef enum {
-	NONE, SHORT, LONG, STUCK,
-} EventType_t;
+
+typedef struct
+{
+    linked_list_t block_list;
+} memory_pool_t;
+
+typedef linked_list_node_t memory_pool_block_t;
+
+#define MEMORY_POOL_SIZE(nblocks, block_size)    ((nblocks)*(block_size))
 
 /********************** external data declaration ****************************/
 
 /********************** external functions declaration ***********************/
 
-void led_event_init(void);
+void memory_pool_init(memory_pool_t* hmp, void* pmemory, size_t memory_size, size_t block_size);
 
-void
-push_led_event(EventType_t event);
+void* memory_pool_block_get(memory_pool_t* hmp);
 
-EventType_t*
-pop_led_event(void);
+void memory_pool_block_put(memory_pool_t* hmp, void* pblock);
 
 /********************** End of CPP guard *************************************/
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* APP_INC_LED_EVENT_QUEUE_H_ */
+#endif /* APP_INC_MEMORY_POOL_H_ */
 /********************** end of file ******************************************/
 

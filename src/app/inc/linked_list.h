@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Sebastian Bedin <sebabedin@gmail.com>.
+ * Copyright (c) YEAR NOMBRE <MAIL>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,14 +29,14 @@
  * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- * @file   : app.h
- * @date   : Feb 17, 2023
- * @author : Sebastian Bedin <sebabedin@gmail.com>
+ * @file   : linked_list.h
+ * @date   : Mar 16, 2023
+ * @author : NOMBRE <MAIL>
  * @version	v1.0.0
  */
 
-#ifndef APP_INC_LED_EVENT_QUEUE_H_
-#define APP_INC_LED_EVENT_QUEUE_H_
+#ifndef APP_INC_LINKED_LIST_H_
+#define APP_INC_LINKED_LIST_H_
 
 /********************** CPP guard ********************************************/
 #ifdef __cplusplus
@@ -52,27 +52,39 @@ extern "C" {
 /********************** macros ***********************************************/
 
 /********************** typedef **********************************************/
-typedef enum {
-	NONE, SHORT, LONG, STUCK,
-} EventType_t;
+
+typedef struct linked_list_node_s linked_list_node_t;
+
+typedef struct
+{
+    linked_list_node_t* pfirst_node;
+    linked_list_node_t* plast_node;
+    size_t len;
+} linked_list_t;
+
+struct linked_list_node_s
+{
+    void* pdata;
+    linked_list_node_t* pnext_node;
+};
 
 /********************** external data declaration ****************************/
 
 /********************** external functions declaration ***********************/
 
-void led_event_init(void);
+void linked_list_init(linked_list_t* hlist);
 
-void
-push_led_event(EventType_t event);
+void linked_list_node_init(linked_list_node_t* hnode, void* pdata);
 
-EventType_t*
-pop_led_event(void);
+linked_list_node_t* linked_list_node_remove(linked_list_t* hlist);
+
+void linked_list_node_add(linked_list_t* hlist, linked_list_node_t* hnode);
 
 /********************** End of CPP guard *************************************/
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* APP_INC_LED_EVENT_QUEUE_H_ */
+#endif /* APP_INC_LINKED_LIST_H_ */
 /********************** end of file ******************************************/
 

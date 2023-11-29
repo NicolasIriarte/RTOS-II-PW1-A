@@ -47,11 +47,12 @@
 #include "task_button.h"
 #include "task_led.h"
 #include "led_event_queue.h"
+#include "memory_pool.h"
 
 /********************** macros and definitions *******************************/
 
-// Define the task stack size
-#define TASK_STACK_SIZE 20
+// Define the number of tasks the Queue and the memory pool will handle
+#define NUM_TASKS 2
 
 /********************** internal data declaration ****************************/
 
@@ -63,19 +64,17 @@
 
 /********************** internal functions definition ************************/
 
-// Define the queue handle
-static QueueHandle_t led_events_queue;
-
+static memory_pool_t memory_pool;
+static EventType_t static_memory[NUM_TASKS];
 
 /**
  * Initialize this module
  */
-bool event_queue_init(void) {
-	  // Create a queue with a capacity of 10 events
-	  led_events_queue = xQueueCreate(10, sizeof(EventType_t*));
-	  return led_events_queue != NULL;
-}
+void led_event_init(void) {
+	memory_pool_init(&memory_pool, &static_memory, NUM_TASKS,
+			sizeof(EventType_t));
 
+}
 
 /**
  * This function push a pointer event into the queue.
@@ -83,24 +82,26 @@ bool event_queue_init(void) {
  * If the event is succefully pushed, the receiver is in charge of
  * freeing the memory.
  */
-BaseType_t
-push_led_event (EventType_t *event)
-{
-  return xQueueSend(led_events_queue, &event, portMAX_DELAY);
+void push_led_event(EventType_t event) {
+	memory_pool_block_put(&memory_pool, &event);
+
+	volatile int lala;
 }
 
 /**
  * Get a pointer to an event, the caller of this function must
  * free the memory.
  */
-EventType_t*
-pop_led_event (void)
-{
-  EventType_t *event;
-  // Receive data from the queue
-  xQueueReceive (led_events_queue, &event, portMAX_DELAY);
-  return event;
-}
+EventType_t* pop_led_event(void) {
+	EventType_t *event;
+	// Receive data from the memory pool
+	void *data = memory_pool_block_get(&memory_pool);
+	if (data == NULL) {
+		volatile int lala;
+	}
+	event = (EventType_t*) data;
 
+	return event;
+}
 
 /********************** end of file ******************************************/
