@@ -44,7 +44,7 @@
 
 #include "driver.h"
 #include "task_button.h"
-#include "app.h"
+#include "led_event_queue.h"
 
 /********************** macros and definitions *******************************/
 
@@ -53,8 +53,15 @@
 #define pdTICKS_TO_MS( xTicks ) \
     ( ( ( TickType_t ) ( xTicks ) * 1000u ) / configTICK_RATE_HZ )
 
+
+#define SHORT_TIME 100
+#define LONG_TIME  2000
+#define STUCK_TIME 8000
+
+
 /********************** internal data declaration ****************************/
 
+typedef uint32_t ButtonTime_t;
 /********************** internal functions declaration ***********************/
 
 /********************** internal data definition *****************************/

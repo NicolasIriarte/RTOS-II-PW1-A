@@ -44,6 +44,7 @@
 
 #include "driver.h"
 #include "task_led.h"
+#include "led_event_queue.h"
 
 /********************** macros and definitions *******************************/
 

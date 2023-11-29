@@ -35,8 +35,8 @@
  * @version	v1.0.0
  */
 
-#ifndef APP_INC_APP_H_
-#define APP_INC_APP_H_
+#ifndef APP_INC_LED_EVENT_QUEUE_H_
+#define APP_INC_LED_EVENT_QUEUE_H_
 
 /********************** CPP guard ********************************************/
 #ifdef __cplusplus
@@ -49,22 +49,32 @@ extern "C" {
 #include <stdint.h>
 #include <stdbool.h>
 
+
 /********************** macros ***********************************************/
 
 /********************** typedef **********************************************/
+typedef enum
+{
+  NONE, SHORT, LONG, STUCK,
+} EventType_t;
 
 /********************** external data declaration ****************************/
 
 /********************** external functions declaration ***********************/
 
-void
-app_init (void);
+bool event_queue_init(void);
+
+BaseType_t
+push_led_event (EventType_t *event);
+
+EventType_t*
+pop_led_event (void);
 
 /********************** End of CPP guard *************************************/
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* APP_INC_APP_H_ */
+#endif /* APP_INC_LED_EVENT_QUEUE_H_ */
 /********************** end of file ******************************************/
 

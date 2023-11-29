@@ -64,55 +64,43 @@
 /********************** internal functions definition ************************/
 
 // Define the queue handle
-static StaticTask_t xTaskButtonBuffer;
-static StackType_t xTaskButtonStack[TASK_STACK_SIZE];
+static QueueHandle_t led_events_queue;
 
-static StaticTask_t xTaskLedBuffer;
-static StackType_t xTaskLedStack[TASK_STACK_SIZE];
 
-/********************** external functions definition ************************/
-
-void
-app_init (void)
-{
-  // drivers
-    {
-      eboard_init ();
-    }
-
-  // Queue
-  bool initialize_queue = event_queue_init();
-
-  assert(initialize_queue != false);
-
-  // tasks
-    {
-	  TaskHandle_t status;
-      status = xTaskCreateStatic (task_ButtonEvent, "task_ButtonEvent",
-    	        TASK_STACK_SIZE,       // Stack size
-    	        NULL,                  // Task parameters
-    	        tskIDLE_PRIORITY + 1,  // Task priority
-    	        xTaskButtonStack,      // Task stack
-    	        &xTaskButtonBuffer      // Task control block
-				);
-
-      assert(status != NULL);
-
-      status = xTaskCreateStatic(task_LedEvent, "task_LedEvent",
-  	        TASK_STACK_SIZE,       // Stack size
-  	        NULL,                  // Task parameters
-  	        tskIDLE_PRIORITY + 1,  // Task priority
-  	        xTaskLedStack,      // Task stack
-  	        &xTaskLedBuffer      // Task control block
-			);
-
-      assert(status != NULL);
-
-      while (status != NULL)
-	{
-	  // error
-	}
-    }
+/**
+ * Initialize this module
+ */
+bool event_queue_init(void) {
+	  // Create a queue with a capacity of 10 events
+	  led_events_queue = xQueueCreate(10, sizeof(EventType_t*));
+	  return led_events_queue != NULL;
 }
+
+
+/**
+ * This function push a pointer event into the queue.
+ * If the send fails, the caller is responsible to free the memory.
+ * If the event is succefully pushed, the receiver is in charge of
+ * freeing the memory.
+ */
+BaseType_t
+push_led_event (EventType_t *event)
+{
+  return xQueueSend(led_events_queue, &event, portMAX_DELAY);
+}
+
+/**
+ * Get a pointer to an event, the caller of this function must
+ * free the memory.
+ */
+EventType_t*
+pop_led_event (void)
+{
+  EventType_t *event;
+  // Receive data from the queue
+  xQueueReceive (led_events_queue, &event, portMAX_DELAY);
+  return event;
+}
+
 
 /********************** end of file ******************************************/
