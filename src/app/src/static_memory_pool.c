@@ -1,5 +1,5 @@
 /*
- * Copyright (c) YEAR NOMBRE <MAIL>.
+ * Copyright (c) 2023 Sebastian Bedin <sebabedin@gmail.com>.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,20 +30,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  *
- * @file   : memory_pool.c
- * @date   : Mar 16, 2023
- * @author : NOMBRE <MAIL>
+ * @file   : app.c
+ * @date   : Feb 17, 2023
+ * @author : Sebastian Bedin <sebabedin@gmail.com>
  * @version	v1.0.0
  */
 
 /********************** inclusions *******************************************/
-
-#include <stdio.h>
-#include <stdint.h>
-#include <stdbool.h>
-
-#include "memory_pool.h"
-#include "driver.h"
+#include "static_memory_pool.h"
+#include "memory.h"
 
 /********************** macros and definitions *******************************/
 
@@ -57,40 +52,67 @@
 
 /********************** internal functions definition ************************/
 
-/********************** external functions definition ************************/
-
-void memory_pool_init(memory_pool_t* hmp, void* pmemory, size_t nblocks, size_t block_size)
-{
-  linked_list_t* hlist = &(hmp->block_list);
-  linked_list_init(hlist);
-
-  for(size_t i = 0; i < nblocks; ++i)
-  {
-    void* pblock = pmemory + i*block_size;
-    linked_list_node_init((memory_pool_block_t*)pblock, NULL);
-    linked_list_node_add(hlist, pblock);
-  }
+void SMemoryPool_init(SMemoryPool_t *self, void *static_memory,
+		uint32_t block_size, uint32_t num_elements) {
+	self->pool = static_memory;
+	self->block_size = block_size;
+	self->num_elements = num_elements;
+	self->num_used_elements = 0;
+	self->head = NULL;
+	self->tail = NULL;
 }
 
-void* memory_pool_block_get(memory_pool_t* hmp)
-{
-  portENTER_CRITICAL(); //Enter on critical section
-  linked_list_t* hlist = &(hmp->block_list);
-  void* pblock = (void*)linked_list_node_remove(hlist);
-  portEXIT_CRITICAL(); //Exit from critical section
-  return pblock;
+void* SMemoryPool_push(SMemoryPool_t *self, void *data) {
+	if (self->num_used_elements >= self->num_elements) {
+		return NULL;
+	}
+
+	void *ret = NULL;
+
+	portENTER_CRITICAL(); //Enter on critical section
+	if (self->head == NULL) {
+		self->head = self->pool;
+		self->tail = self->pool;
+	} else {
+		// If we are out of bound but we have free space, the last element is the
+		// first block of the pool.
+		if (self->tail + self->block_size
+				>= self->pool + self->num_elements * self->block_size) {
+			self->tail = self->pool;
+		} else {
+			self->tail += self->block_size;
+		}
+	}
+
+	// Copy data to the pool
+	memcpy(self->tail, data, self->block_size);
+
+	ret = self->tail;
+	self->num_used_elements++;
+
+	portEXIT_CRITICAL(); //Exit from critical section
+	return ret;
 }
 
-void memory_pool_block_put(memory_pool_t* hmp, void* pblock)
-{
-  portENTER_CRITICAL(); //Enter on critical section
-  if(NULL != pblock)
-  {
-    linked_list_t* hlist = &(hmp->block_list);
-    linked_list_node_init((memory_pool_block_t*)pblock, NULL);
-    linked_list_node_add(hlist, pblock);
-  }
-  portEXIT_CRITICAL(); //Exit from critical section
+void* SMemoryPool_pop(SMemoryPool_t *self) {
+	if (self->num_used_elements == 0) {
+		return NULL;
+	}
+
+	portENTER_CRITICAL(); //Enter on critical section
+	void *ret = self->head;
+
+	if (self->head + self->block_size
+			>= self->pool + self->num_elements * self->block_size) {
+		self->head = self->pool;
+	} else {
+		self->head += self->block_size;
+	}
+
+	self->num_used_elements--;
+
+	portEXIT_CRITICAL(); //Exit from critical section
+	return ret;
 }
 
 /********************** end of file ******************************************/
