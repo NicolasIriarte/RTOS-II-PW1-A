@@ -47,7 +47,7 @@
 #include "task_button.h"
 #include "task_led.h"
 #include "led_event_queue.h"
-#include "memory_pool.h"
+#include "static_memory_pool.h"
 
 /********************** macros and definitions *******************************/
 
@@ -64,15 +64,15 @@
 
 /********************** internal functions definition ************************/
 
-static memory_pool_t memory_pool;
+static SMemoryPool_t memory_pool;
 static EventType_t static_memory[NUM_TASKS];
 
 /**
  * Initialize this module
  */
 void led_event_init(void) {
-	memory_pool_init(&memory_pool, &static_memory, NUM_TASKS,
-			sizeof(EventType_t));
+	SMemoryPool_init(&memory_pool, &static_memory, sizeof(EventType_t),
+	NUM_TASKS);
 
 }
 
@@ -83,7 +83,7 @@ void led_event_init(void) {
  * freeing the memory.
  */
 void push_led_event(EventType_t event) {
-	memory_pool_block_put(&memory_pool, &event);
+	SMemoryPool_push(&memory_pool, &event);
 
 	volatile int lala;
 }
@@ -93,15 +93,12 @@ void push_led_event(EventType_t event) {
  * free the memory.
  */
 EventType_t* pop_led_event(void) {
-	EventType_t *event;
 	// Receive data from the memory pool
-	void *data = memory_pool_block_get(&memory_pool);
+	void *data = SMemoryPool_pop(&memory_pool);
 	if (data == NULL) {
 		volatile int lala;
 	}
-	event = (EventType_t*) data;
-
-	return event;
+	return (EventType_t*) data;
 }
 
 /********************** end of file ******************************************/
