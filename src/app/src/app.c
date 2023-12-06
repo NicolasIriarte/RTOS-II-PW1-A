@@ -67,9 +67,6 @@
 static StaticTask_t xTaskButtonBuffer;
 static StackType_t xTaskButtonStack[TASK_STACK_SIZE];
 
-static StaticTask_t xTaskLedBuffer;
-static StackType_t xTaskLedStack[TASK_STACK_SIZE];
-
 /********************** external functions definition ************************/
 
 void app_init(void) {
@@ -77,9 +74,6 @@ void app_init(void) {
 	{
 		eboard_init();
 	}
-
-	// Initialize the event list
-	led_event_init();
 
 	// tasks
 	{
@@ -90,16 +84,6 @@ void app_init(void) {
 				tskIDLE_PRIORITY + 1,  // Task priority
 				xTaskButtonStack,      // Task stack
 				&xTaskButtonBuffer      // Task control block
-				);
-
-		assert(status != NULL);
-
-		status = xTaskCreateStatic(task_LedEvent, "task_LedEvent",
-		TASK_STACK_SIZE,               // Stack size
-				NULL,                  // Task parameters
-				tskIDLE_PRIORITY,      // Task priority
-				xTaskLedStack,         // Task stack
-				&xTaskLedBuffer         // Task control block
 				);
 
 		assert(status != NULL);

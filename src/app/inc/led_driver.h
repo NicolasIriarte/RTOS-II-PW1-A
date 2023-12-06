@@ -29,76 +29,52 @@
  * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- *
- * @file   : app.c
+ * @file   : led_driver.h
  * @date   : Feb 17, 2023
  * @author : Sebastian Bedin <sebabedin@gmail.com>
  * @version	v1.0.0
  */
 
+#ifndef APP_INC_LED_DRIVER_H_
+#define APP_INC_LED_DRIVER_H_
+
+/********************** CPP guard ********************************************/
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /********************** inclusions *******************************************/
 
-#include <stdio.h>
-#include <stdint.h>
-#include <stdbool.h>
+/********************** macros ***********************************************/
 
-#include "driver.h"
-#include "app.h"
-#include "task_button.h"
-#include "task_led.h"
-#include "led_event_queue.h"
-#include "static_memory_pool.h"
+/********************** typedef **********************************************/
 
-/********************** macros and definitions *******************************/
+/********************** external data declaration ****************************/
 
-// Define the number of tasks the Queue and the memory pool will handle
-#define NUM_TASKS 2
+/********************** external functions declaration ***********************/
 
-/********************** internal data declaration ****************************/
+typedef enum {
+  OFF,
+  ON,
+  BLINK,
+} led_pattern_t;
 
-/********************** internal functions declaration ***********************/
+typedef enum {
+  RED,     // red
+  GREEN,   // green
+  BLUE,    // blue
+  YELLOW,  // red + green
+  CYAN,    // green + blue
+  MAGENTA, // red + blue
+} led_color_t;
 
-/********************** internal data definition *****************************/
+void led_driver_init(void);
+void led_driver_set_pattern(led_color_t color, led_pattern_t pattern);
 
-/********************** external data definition *****************************/
-
-/********************** internal functions definition ************************/
-
-static SMemoryPool_t memory_pool;
-static EventType_t static_memory[NUM_TASKS];
-
-/**
- * Initialize this module
- */
-void led_event_init(void) {
-	SMemoryPool_init(&memory_pool, &static_memory, sizeof(EventType_t),
-	NUM_TASKS);
-
+/********************** End of CPP guard *************************************/
+#ifdef __cplusplus
 }
+#endif
 
-/**
- * This function push a pointer event into the queue.
- * If the send fails, the caller is responsible to free the memory.
- * If the event is succefully pushed, the receiver is in charge of
- * freeing the memory.
- */
-void push_led_event(EventType_t event) {
-	SMemoryPool_push(&memory_pool, &event);
-
-	volatile int lala;
-}
-
-/**
- * Get a pointer to an event, the caller of this function must
- * free the memory.
- */
-EventType_t* pop_led_event(void) {
-	// Receive data from the memory pool
-	void *data = SMemoryPool_pop(&memory_pool);
-	if (data == NULL) {
-		volatile int lala;
-	}
-	return (EventType_t*) data;
-}
-
+#endif /* APP_INC_LED_DRIVER_H_ */
 /********************** end of file ******************************************/

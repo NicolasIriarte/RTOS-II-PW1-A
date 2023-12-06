@@ -38,28 +38,17 @@
 
 /********************** inclusions *******************************************/
 
-#include <stdio.h>
-#include <stdint.h>
-#include <stdbool.h>
-
+#include "led_driver.h"
 #include "driver.h"
-#include "task_button.h"
-#include "led_event_queue.h"
+
+#include <stdbool.h>
 
 /********************** macros and definitions *******************************/
 
-#define TASK_DELAY 5
-
-#define pdTICKS_TO_MS( xTicks ) \
-    ( ( ( TickType_t ) ( xTicks ) * 1000u ) / configTICK_RATE_HZ )
-
-#define SHORT_TIME 100
-#define LONG_TIME  2000
-#define STUCK_TIME 8000
+#define TASK_DELAY 50
 
 /********************** internal data declaration ****************************/
 
-typedef uint32_t ButtonTime_t;
 /********************** internal functions declaration ***********************/
 
 /********************** internal data definition *****************************/
@@ -68,67 +57,26 @@ typedef uint32_t ButtonTime_t;
 
 /********************** internal functions definition ************************/
 
-static EventType_t TimeToEventType(ButtonTime_t time) {
-
-	EventType_t event_type;
-	// Classify time
-	if (time < SHORT_TIME) {
-		event_type = NONE;
-	} else if (time < LONG_TIME) {
-		event_type = SHORT;
-	} else if (time < STUCK_TIME) {
-		event_type = LONG;
-	} else {
-		event_type = STUCK;
-	}
-	return event_type;
-}
-
 void task_ButtonEvent(void *pvParameters) {
-	ButtonTime_t last_time_event = 0;
-	ButtonTime_t delta_time = 0;
-	bool restart_timer_flag = true;
+	led_pattern_t pattern[3] = { OFF, ON, BLINK };
+	led_color_t color[6] = { RED, GREEN, BLUE, YELLOW, CYAN, MAGENTA };
 
-	EventType_t last_event = NONE;
+	led_pattern_t current_pattern = OFF;
+	led_color_t current_color = RED;
+
+	led_driver_init();
 
 	while (true) {
-		EventType_t event;
 
 		if (eboard_switch()) // Button pressed
 		{
-
-			if (restart_timer_flag) {
-				last_time_event = pdTICKS_TO_MS(eboard_osal_port_get_time());
-				restart_timer_flag = false;
+			current_pattern = pattern[(current_pattern + 1) % 3];
+			if (current_pattern == 0) {
+				current_color = color[(current_color + 1) % 6];
 			}
 
-			delta_time = pdTICKS_TO_MS(eboard_osal_port_get_time())
-					- last_time_event;
-
-			if (delta_time > STUCK_TIME) {
-				event = STUCK;
-			} else {
-				event = NONE;
-			}
-		} else // Button not pressed
-		{
-			EventType_t event_type = TimeToEventType(delta_time);
-
-			if (delta_time > STUCK_TIME) {
-				event_type = NONE;
-			}
-
-			// Push event to the queue
-			event = event_type;
-
-			restart_timer_flag = true;
+			led_driver_set_pattern(current_color, current_pattern);
 		}
-
-		if (event != last_event) {
-			push_led_event(event);
-			last_event = event;
-		}
-
 		eboard_osal_port_delay(TASK_DELAY);
 	}
 }
