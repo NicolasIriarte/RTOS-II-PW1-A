@@ -61,7 +61,8 @@ void driver_uart_rx_init(void);
 
 /**
  * @details This function is called by the UART driver when a new string is
- *          received.
+ *          received. This function must be implemented by the user of the
+ *          driver.
  */
 void driver_uart_rx_callback(char *buffer, size_t len);
 
