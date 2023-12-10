@@ -38,20 +38,17 @@
 
 /********************** inclusions *******************************************/
 
-#include <stdio.h>
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
 
-#include "driver.h"
-#include "app.h"
-#include "task_button.h"
-#include "task_led.h"
-#include "led_event_queue.h"
+#include "cmsis_os.h"
+#include "main.h"
+
+#include "uart_driver.h"
 
 /********************** macros and definitions *******************************/
-
-// Define the task stack size
-#define TASK_STACK_SIZE 256
 
 /********************** internal data declaration ****************************/
 
@@ -59,42 +56,46 @@
 
 /********************** internal data definition *****************************/
 
+static char mgs1[] = "hola";
+static char mgs2[] = "chau";
+
 /********************** external data definition *****************************/
 
 /********************** internal functions definition ************************/
 
-// Define the queue handle
-static StaticTask_t xTaskButtonBuffer;
-static StackType_t xTaskButtonStack[TASK_STACK_SIZE];
+void driver_uart_tx_error_callback(void) {
+	while (1)
+		;
+}
+
+static void task_tx_example_(void *argument) {
+	driver_uart_tx_init();
+
+	while (true) {
+		driver_uart_tx((uint8_t*) mgs1, (size_t) strlen(mgs1));
+		driver_uart_tx((uint8_t*) mgs2, (size_t) strlen(mgs2));
+
+		driver_uart_tx_tick();
+		vTaskDelay((TickType_t) ((10) / portTICK_PERIOD_MS));
+	}
+}
+
+// TODO: Add task for RX here and add it to the scheduler.
 
 /********************** external functions definition ************************/
 
 void app_init(void) {
-	// drivers
-	{
-		eboard_init();
-	}
-
 	// tasks
 	{
-		TaskHandle_t status = NULL;
-		status = xTaskCreateStatic(task_ButtonEvent, "task_ButtonEvent",
-		TASK_STACK_SIZE,               // Stack size
-				NULL,                  // Task parameters
-				tskIDLE_PRIORITY + 1,  // Task priority
-				xTaskButtonStack,      // Task stack
-				&xTaskButtonBuffer      // Task control block
-				);
+		BaseType_t status;
 
-		assert(status != NULL);
-
-		// Start the scheduler
-		vTaskStartScheduler();
-
-		while (status != NULL) {
+		status = xTaskCreate(task_tx_example_, "task_tx_example", 128, NULL,
+		tskIDLE_PRIORITY, NULL);
+		while (pdPASS != status) {
 			// error
 		}
 	}
 }
 
-/********************** end of file ******************************************/
+/********************** end of file
+ * ******************************************/

@@ -59,9 +59,23 @@ void driver_uart_rx_error_callback(void);
 
 void driver_uart_rx_init(void);
 
-size_t driver_uart_rx(uint8_t *buffer, size_t size);
+/**
+ * @details This function is called by the UART driver when a new string is
+ *          received.
+ */
+void driver_uart_rx_callback(char *buffer, size_t len);
 
 void driver_uart_rx_tick();
+
+///////////////////////// TX
+
+void driver_uart_tx_error_callback(void);
+
+void driver_uart_tx_init(void);
+
+size_t driver_uart_tx(uint8_t *buffer, size_t size);
+
+void driver_uart_tx_tick();
 
 /********************** End of CPP guard *************************************/
 #ifdef __cplusplus
