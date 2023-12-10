@@ -29,70 +29,44 @@
  * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- *
- * @file   : app.c
- * @date   : Feb 17, 2023
+ * @file   : driver_uart.h
+ * @date   : Dec 6, 2023
  * @author : Sebastian Bedin <sebabedin@gmail.com>
  * @version	v1.0.0
  */
 
+#ifndef APP_INC_DRIVER_UART_H_
+#define APP_INC_DRIVER_UART_H_
+
+/********************** CPP guard ********************************************/
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /********************** inclusions *******************************************/
-
-#include <stdio.h>
+#include <stddef.h>
 #include <stdint.h>
-#include <stdbool.h>
 
-#include "driver.h"
-#include "task_led.h"
-#include "led_event_queue.h"
+/********************** macros ***********************************************/
 
-/********************** macros and definitions *******************************/
+/********************** typedef **********************************************/
 
-/********************** internal data declaration ****************************/
+/********************** external data declaration ****************************/
 
-/********************** internal functions declaration ***********************/
+/********************** external functions declaration ***********************/
 
-/********************** internal data definition *****************************/
+void driver_uart_rx_error_callback(void);
 
-/********************** external data definition *****************************/
+void driver_uart_rx_init(void);
 
-/********************** internal functions definition ************************/
+size_t driver_uart_rx(uint8_t *buffer, size_t size);
 
-void task_LedEvent(void *arguments) {
-	// The system shall init with all leds off.
-	eboard_led_red(false);
-	eboard_led_green(false);
-	eboard_led_blue(false);
+void driver_uart_rx_tick();
 
-	while (true) {
-		EventType_t *event = pop_led_event();
-
-		if (event == NULL) {
-			continue;
-		}
-
-		switch (*event) {
-		case NONE:
-			eboard_led_green(false);
-			eboard_led_red(false);
-			break;
-		case SHORT:
-			eboard_led_green(true);
-			eboard_led_red(false);
-			break;
-		case LONG:
-			eboard_led_green(false);
-			eboard_led_red(true);
-			break;
-		case STUCK:
-			eboard_led_green(true);
-			eboard_led_red(true);
-			break;
-		default:
-			break;
-		}
-	}
-
+/********************** End of CPP guard *************************************/
+#ifdef __cplusplus
 }
+#endif
 
+#endif /* APP_INC_DRIVER_UART_H_ */
 /********************** end of file ******************************************/

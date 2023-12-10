@@ -81,21 +81,21 @@ void euart_hal_send(void *phardware_handle, uint8_t *pbuffer, size_t size)
   HAL_UART_Transmit_IT((UART_HandleTypeDef*)phardware_handle, pbuffer, size);
 }
 
-void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
-{
-  eboard_hal_port_uart_error((void*)huart);
-  // TODO: ¿?
-}
+/* void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) */
+/* { */
+/*   eboard_hal_port_uart_error((void*)huart); */
+/*   // TODO: ¿? */
+/* } */
 
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size)
 {
   eboard_hal_port_uart_rx_irq((void*)huart, size);
 }
 
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
-{
-  eboard_hal_port_uart_tx_irq((void*)huart);
-}
+/* void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) */
+/* { */
+/*   eboard_hal_port_uart_tx_irq((void*)huart); */
+/* } */
 
 void eboard_hal_port_gpio_write(void *handle, bool value)
 {
