@@ -38,24 +38,27 @@
 
 /********************** inclusions *******************************************/
 
-#include "eboard.h"
 #include "led_driver.h"
+#include "eboard.h"
 
-#include <stdbool.h>
 #include "hal.h"
+#include "stm32f4xx_hal_conf.h"
+
+#include <assert.h>
+#include <stdbool.h>
 
 /********************** macros and definitions *******************************/
 
 #define BLINK_PERIOD_MS (500)
 
 // Define the task stack size
-#define TASK_STACK_SIZE 2
+#define TASK_STACK_SIZE 128
 
 /********************** internal data declaration ****************************/
 
 typedef struct {
-	led_color_t color;
-	bool is_active;
+  led_color_t color;
+  bool is_active;
 } internal_led_state_t;
 
 /********************** internal functions declaration ***********************/
@@ -75,118 +78,117 @@ static void blink_led_task(void *pvParameters);
 
 static internal_led_state_t led_state;
 
-static StaticTask_t xTaskBlinkLedBuffer;
-static StackType_t xTaskBlinkLedStack[TASK_STACK_SIZE];
 static TaskHandle_t xTaskBlinkLedHandle = NULL;
 
 /********************** internal functions definition ************************/
 
 void led_driver_init(void) {
-	// The driver shall grant that all leds are off at the beginning.
-	eboard_led_red(false);
-	eboard_led_green(false);
-	eboard_led_blue(false);
+  // The driver shall grant that all leds are off at the beginning.
+  eboard_led_red(false);
+  eboard_led_green(false);
+  eboard_led_blue(false);
 
-	// Internal driver state
-	led_state.color = RED; // To initialize the driver with a valid color.
-	led_state.is_active = false;
+  // Internal driver state
+  led_state.color = RED; // To initialize the driver with a valid color.
+  led_state.is_active = false;
 }
 
 void led_driver_set_pattern(led_color_t color, led_pattern_t pattern) {
-	switch (pattern) {
-	case OFF:
-		remove_blink_task(); // If the task is running, remove it.
-		change_all_leds_state(false);
-		break;
-	case ON:
-		remove_blink_task(); // If the task is running, remove it.
-		turn_on_led(color);
-		break;
-	case BLINK:
-		add_or_update_blink_task(color);
-	}
+  switch (pattern) {
+  case OFF:
+    remove_blink_task(); // If the task is running, remove it.
+    change_all_leds_state(false);
+    break;
+  case ON:
+    remove_blink_task(); // If the task is running, remove it.
+    turn_on_led(color);
+    break;
+  case BLINK:
+    add_or_update_blink_task(color);
+  }
 }
 
 static void change_all_leds_state(bool state) {
-	eboard_led_red(state);
-	eboard_led_green(state);
-	eboard_led_blue(state);
+  eboard_led_red(state);
+  eboard_led_green(state);
+  eboard_led_blue(state);
 }
 
 static void turn_on_led(led_color_t color) {
-	switch (color) {
-	case RED:
-		eboard_led_red(true);
-		eboard_led_green(false);
-		eboard_led_blue(false);
-		break;
-	case GREEN:
-		eboard_led_green(true);
-		eboard_led_red(false);
-		eboard_led_blue(false);
-		break;
-	case BLUE:
-		eboard_led_blue(true);
-		eboard_led_red(false);
-		eboard_led_green(false);
-		break;
-	case YELLOW:
-		eboard_led_red(true);
-		eboard_led_green(true);
-		eboard_led_blue(false);
-		break;
-	case CYAN:
-		eboard_led_green(true);
-		eboard_led_blue(true);
-		eboard_led_red(false);
-		break;
-	case MAGENTA:
-		eboard_led_red(true);
-		eboard_led_blue(true);
-		eboard_led_green(false);
-		break;
-	}
+  switch (color) {
+  case RED:
+    eboard_led_red(true);
+    eboard_led_green(false);
+    eboard_led_blue(false);
+    break;
+  case GREEN:
+    eboard_led_green(true);
+    eboard_led_red(false);
+    eboard_led_blue(false);
+    break;
+  case BLUE:
+    eboard_led_blue(true);
+    eboard_led_red(false);
+    eboard_led_green(false);
+    break;
+  case YELLOW:
+    eboard_led_red(true);
+    eboard_led_green(true);
+    eboard_led_blue(false);
+    break;
+  case CYAN:
+    eboard_led_green(true);
+    eboard_led_blue(true);
+    eboard_led_red(false);
+    break;
+  case MAGENTA:
+    eboard_led_red(true);
+    eboard_led_blue(true);
+    eboard_led_green(false);
+    break;
+  }
 }
 
 static void add_or_update_blink_task(led_color_t color) {
-	// If the task is not running, create it.
-	led_state.color = color;
+  // If the task is not running, create it.
+  led_state.color = color;
 
-	taskENTER_CRITICAL();
+  taskENTER_CRITICAL();
 
-	if (!led_state.is_active) {
-		// Create the task
-		xTaskBlinkLedHandle = xTaskCreateStatic(blink_led_task,
-				"blink_led_task", TASK_STACK_SIZE,
-				NULL, tskIDLE_PRIORITY, xTaskBlinkLedStack,
-				&xTaskBlinkLedBuffer);
-	}
+  if (!led_state.is_active) {
+    // Create the task
+    BaseType_t status =
+        xTaskCreate(blink_led_task, "blink_led_task", TASK_STACK_SIZE, NULL,
+                    tskIDLE_PRIORITY, &xTaskBlinkLedHandle);
 
-	led_state.is_active = true;
-	taskEXIT_CRITICAL();
+    assert(status == pdPASS);
+  }
+
+  led_state.is_active = true;
+  taskEXIT_CRITICAL();
 }
 
 static void remove_blink_task(void) {
-	taskENTER_CRITICAL();
+  taskENTER_CRITICAL();
 
-	if (led_state.is_active) {
-		// Remove the task from FreeRTOS scheduler
-		vTaskDelete(xTaskBlinkLedHandle);
-		xTaskBlinkLedHandle = NULL;
-	}
+  if (led_state.is_active) {
+    // Remove the task from FreeRTOS scheduler
+    vTaskDelete(xTaskBlinkLedHandle);
+    xTaskBlinkLedHandle = NULL;
+  }
 
-	led_state.is_active = false;
+  led_state.is_active = false;
 
-	taskEXIT_CRITICAL();
+  taskEXIT_CRITICAL();
 }
 
 static void blink_led_task(void *pvParameters) {
-	while (1) {
-		turn_on_led(led_state.color);
-		vTaskDelay(BLINK_PERIOD_MS / portTICK_PERIOD_MS);
-		change_all_leds_state(false);
-		vTaskDelay(BLINK_PERIOD_MS / portTICK_PERIOD_MS);
-	}
+  while (1) {
+    turn_on_led(led_state.color);
+    vTaskDelay(BLINK_PERIOD_MS / portTICK_PERIOD_MS);
+    change_all_leds_state(false);
+    vTaskDelay(BLINK_PERIOD_MS / portTICK_PERIOD_MS);
+  }
 }
 
 /********************** end of file ******************************************/

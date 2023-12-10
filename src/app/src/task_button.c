@@ -70,12 +70,15 @@ void task_ButtonEvent(void *pvParameters) {
 
 		if (eboard_switch()) // Button pressed
 		{
-			current_pattern = pattern[(current_pattern + 1) % 3];
-			if (current_pattern == 0) {
-				current_color = color[(current_color + 1) % 6];
-			}
+      // Every time the button is pressed, the led pattern changes
+      led_driver_set_pattern(current_color, current_pattern);
 
-			led_driver_set_pattern(current_color, current_pattern);
+      // Advance to the next pattern
+      current_pattern = pattern[(current_pattern + 1) % 3];
+      if (current_pattern == 0) {
+        current_color = color[(current_color + 1) % 6];
+      }
+
 		}
 		eboard_osal_port_delay(TASK_DELAY);
 	}

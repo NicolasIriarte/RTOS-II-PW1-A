@@ -51,7 +51,7 @@
 /********************** macros and definitions *******************************/
 
 // Define the task stack size
-#define TASK_STACK_SIZE 20
+#define TASK_STACK_SIZE 256
 
 /********************** internal data declaration ****************************/
 
