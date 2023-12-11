@@ -46,7 +46,7 @@
 #include "cmsis_os.h"
 #include "main.h"
 
-#include "uart_driver.h"
+#include "uart_driver_tx.h"
 
 /********************** macros and definitions *******************************/
 
@@ -93,10 +93,6 @@ static driver_tx_t_ tx_;
 extern UART_HandleTypeDef huart3;
 
 /********************** internal functions definition ************************/
-
-void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
-	driver_uart_tx_error_callback();
-}
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
 	TX_PERIPH_ENABLE_ = true;

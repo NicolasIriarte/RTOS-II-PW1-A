@@ -46,7 +46,8 @@
 #include "cmsis_os.h"
 #include "main.h"
 
-#include "uart_driver.h"
+#include "uart_driver_rx.h"
+#include "uart_driver_tx.h"
 
 /********************** macros and definitions *******************************/
 
@@ -80,6 +81,20 @@ static void task_tx_example_(void *argument) {
 	}
 }
 
+void driver_uart_rx(uint8_t *buffer, size_t size) {
+	// Put a breakpoint here to see the content of buffer and size.
+	return;
+}
+
+static void task_rx_example_(void *argument) {
+	driver_uart_rx_init();
+
+	while (true) {
+		driver_uart_rx_tick();
+		vTaskDelay((TickType_t) ((10) / portTICK_PERIOD_MS));
+	}
+}
+
 // TODO: Add task for RX here and add it to the scheduler.
 
 /********************** external functions definition ************************/
@@ -91,6 +106,14 @@ void app_init(void) {
 
 		status = xTaskCreate(task_tx_example_, "task_tx_example", 128, NULL,
 		tskIDLE_PRIORITY, NULL);
+		assert(status == pdPASS);
+
+		status = xTaskCreate(task_rx_example_, "task_rx_example", 128, NULL,
+		tskIDLE_PRIORITY, NULL);
+		assert(status == pdPASS);
+
+		__enable_irq();
+
 		while (pdPASS != status) {
 			// error
 		}

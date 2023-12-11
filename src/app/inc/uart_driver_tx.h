@@ -35,8 +35,8 @@
  * @version	v1.0.0
  */
 
-#ifndef APP_INC_DRIVER_UART_H_
-#define APP_INC_DRIVER_UART_H_
+#ifndef APP_INC_DRIVER_UART_TX_H_
+#define APP_INC_DRIVER_UART_TX_H_
 
 /********************** CPP guard ********************************************/
 #ifdef __cplusplus
@@ -55,21 +55,6 @@ extern "C" {
 
 /********************** external functions declaration ***********************/
 
-void driver_uart_rx_error_callback(void);
-
-void driver_uart_rx_init(void);
-
-/**
- * @details This function is called by the UART driver when a new string is
- *          received. This function must be implemented by the user of the
- *          driver.
- */
-void driver_uart_rx_callback(char *buffer, size_t len);
-
-void driver_uart_rx_tick();
-
-///////////////////////// TX
-
 void driver_uart_tx_error_callback(void);
 
 void driver_uart_tx_init(void);
@@ -83,5 +68,5 @@ void driver_uart_tx_tick();
 }
 #endif
 
-#endif /* APP_INC_DRIVER_UART_H_ */
+#endif /* APP_INC_DRIVER_UART_TX_H_ */
 /********************** end of file ******************************************/
