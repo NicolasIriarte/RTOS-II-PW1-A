@@ -146,6 +146,11 @@ static void turn_on_led(led_color_t color) {
     eboard_led_blue(true);
     eboard_led_green(false);
     break;
+  case WHITE:
+    eboard_led_red(true);
+    eboard_led_blue(true);
+    eboard_led_green(true);
+    break;
   }
 }
 

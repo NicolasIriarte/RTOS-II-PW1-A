@@ -66,6 +66,7 @@ typedef enum {
   YELLOW,  // red + green
   CYAN,    // green + blue
   MAGENTA, // red + blue
+  WHITE  // red + bue + green
 } led_color_t;
 
 void led_driver_init(void);
