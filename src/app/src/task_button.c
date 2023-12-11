@@ -59,7 +59,7 @@
 
 void task_ButtonEvent(void *pvParameters) {
 	led_pattern_t pattern[3] = { OFF, ON, BLINK };
-	led_color_t color[6] = { RED, GREEN, BLUE, YELLOW, CYAN, MAGENTA };
+	led_color_t color[7] = { RED, GREEN, BLUE, YELLOW, CYAN, MAGENTA,WHITE };
 
 	led_pattern_t current_pattern = OFF;
 	led_color_t current_color = RED;
@@ -76,7 +76,7 @@ void task_ButtonEvent(void *pvParameters) {
       // Advance to the next pattern
       current_pattern = pattern[(current_pattern + 1) % 3];
       if (current_pattern == 0) {
-        current_color = color[(current_color + 1) % 6];
+        current_color = color[(current_color + 1) % 7];
       }
 
 		}

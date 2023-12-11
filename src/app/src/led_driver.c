@@ -94,6 +94,7 @@ void led_driver_init(void) {
 }
 
 void led_driver_set_pattern(led_color_t color, led_pattern_t pattern) {
+
   switch (pattern) {
   case OFF:
     remove_blink_task(); // If the task is running, remove it.
@@ -105,6 +106,11 @@ void led_driver_set_pattern(led_color_t color, led_pattern_t pattern) {
     break;
   case BLINK:
     add_or_update_blink_task(color);
+    break;
+  default:
+    // error
+    assert(0);
+  break;
   }
 }
 
@@ -115,39 +121,52 @@ static void change_all_leds_state(bool state) {
 }
 
 static void turn_on_led(led_color_t color) {
-  switch (color) {
-  case RED:
-    eboard_led_red(true);
-    eboard_led_green(false);
-    eboard_led_blue(false);
-    break;
-  case GREEN:
-    eboard_led_green(true);
-    eboard_led_red(false);
-    eboard_led_blue(false);
-    break;
-  case BLUE:
-    eboard_led_blue(true);
-    eboard_led_red(false);
-    eboard_led_green(false);
-    break;
-  case YELLOW:
-    eboard_led_red(true);
-    eboard_led_green(true);
-    eboard_led_blue(false);
-    break;
-  case CYAN:
-    eboard_led_green(true);
-    eboard_led_blue(true);
-    eboard_led_red(false);
-    break;
-  case MAGENTA:
-    eboard_led_red(true);
-    eboard_led_blue(true);
-    eboard_led_green(false);
-    break;
+
+  // Validación de la entrada
+  if (color < RED || color > WHITE) {
+    // error;
+    assert(0);
+    return;
   }
+
+  bool red_on = false;
+  bool green_on = false;
+  bool blue_on = false;
+
+  switch (color) {
+    case RED:
+      red_on = true;
+      break;
+    case GREEN:
+      green_on = true;
+      break;
+    case BLUE:
+      blue_on = true;
+      break;
+    case YELLOW:
+      red_on = green_on = true;
+      break;
+    case CYAN:
+      green_on = blue_on = true;
+      break;
+    case MAGENTA:
+      red_on = blue_on = true;
+      break;
+    case WHITE:
+      red_on = green_on = blue_on = true;
+      break;
+    default:
+      // error;
+      assert(0);
+      break;
+    return;
+  }
+
+  eboard_led_red(red_on);
+  eboard_led_green(green_on);
+  eboard_led_blue(blue_on);
 }
+
 
 static void add_or_update_blink_task(led_color_t color) {
   // If the task is not running, create it.
